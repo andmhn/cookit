@@ -1,4 +1,4 @@
-package com.github.andmhn.cookit.entity;
+package com.github.andmhn.cookit.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,7 +8,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table
+@Table(name =  "recipes")
 @Data
 public class Recipe {
 	@Id

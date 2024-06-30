@@ -1,8 +1,9 @@
-package com.github.andmhn.cookit.entity;
+package com.github.andmhn.cookit.model;
 
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -16,13 +17,15 @@ import lombok.Data;
 @Entity
 @Table(name = "users")
 @Data
-public class User {
+public class User{
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long user_id;
 	
+	@Column(unique = true)
 	private String email;
-	private String username;
+
+	private String fullname;
 	private String password;
 	private String joindate;
 	
