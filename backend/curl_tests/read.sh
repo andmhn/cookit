@@ -1,1 +1,1 @@
-curl --silent 127.0.0.0:8080/findAll | jq
+curl --silent -u example@email.com:1234 -X GET http://localhost:8080/findAll | jq
