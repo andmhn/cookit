@@ -20,16 +20,16 @@ import lombok.Data;
 public class User{
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long user_id;
+	private Long id;
 	
 	@Column(unique = true)
 	private String email;
 
 	private String fullname;
 	private String password;
-	private String joindate;
+//	private String joindate;
 	
 	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	@JoinColumn(name = "fk_user_id", referencedColumnName = "user_id")
+	@JoinColumn(name = "fk_user_id", referencedColumnName = "id")
 	private List<Recipe> recipies;
 }

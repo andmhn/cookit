@@ -1,9 +1,9 @@
-package com.github.andmhn.cookit;
+package com.github.andmhn.cookit.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -16,21 +16,16 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
-import com.github.andmhn.cookit.model.UserDetailsServiceImpl;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
-
-    @Autowired
-    private UserDetailsServiceImpl userDetailsServiceImpl;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(CsrfConfigurer::disable)
                 .authorizeHttpRequests(registry -> {
-                    registry.requestMatchers("/register").permitAll();
+                    registry.requestMatchers("/auth/**").permitAll();
                     registry.anyRequest().authenticated();
                 })
                 .httpBasic(withDefaults())
@@ -39,18 +34,16 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return userDetailsServiceImpl;
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService());
-        provider.setPasswordEncoder(passwordEncoder());
-
-        return provider;
-    }
+    public AuthenticationManager authenticationManager( 
+    		UserDetailsService userDetailsService,
+    		PasswordEncoder passwordEncoder) 
+    {
+		 DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+		 authenticationProvider.setUserDetailsService(userDetailsService);
+		 authenticationProvider.setPasswordEncoder(passwordEncoder);
+		
+		 return new ProviderManager(authenticationProvider);
+    }    
 
     @Bean
     public PasswordEncoder passwordEncoder() {
