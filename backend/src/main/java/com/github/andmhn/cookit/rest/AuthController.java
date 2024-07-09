@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.andmhn.cookit.model.User;
+import com.github.andmhn.cookit.rest.dto.AuthResponse;
 import com.github.andmhn.cookit.rest.dto.LoginRequest;
 import com.github.andmhn.cookit.rest.dto.SignUpRequest;
 import com.github.andmhn.cookit.service.UserService;
@@ -27,27 +28,27 @@ public class AuthController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/signup")
-    public String signUp(@RequestBody SignUpRequest signUpRequest) {
+    public AuthResponse signUp(@RequestBody SignUpRequest signUpRequest) {
         if (userService.hasUserWithEmail(signUpRequest.getEmail())) {
             throw new RuntimeException(String.format("Email %s is already"
             		+ " been used", signUpRequest.getEmail()));
         }
 
         User user = userService.saveUser(createUser(signUpRequest));
-        return "Id: " + user.getId() + " Name: " + user.getFullname();
+        return new AuthResponse(user.getId(), user.getEmail(), user.getFullname());
     }
-    
+
     @PostMapping("/authenticate")
-    public ResponseEntity<String> authenticate(
+    public ResponseEntity<AuthResponse> authenticate(
     		@RequestBody LoginRequest loginRequest) {
 
     	Optional<User> userOptional = userService.validEmailAndPassword(
     			loginRequest.getEmail(), loginRequest.getPassword());
 
     	if(userOptional.isPresent()) {
-    		return ResponseEntity.ok("User: " + loginRequest.getEmail()
-    			+ " with Name: " + userOptional.get().getFullname()
-    			+ " Is valid");
+    		User user = userOptional.get();
+    		return ResponseEntity.ok(new AuthResponse(
+    				user.getId(), user.getEmail(), user.getFullname()));
     	} else {
     		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     	}
