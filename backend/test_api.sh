@@ -9,4 +9,7 @@ fi
 http POST 127.0.0.0:8080/auth/signup  'fullname=Anand Mohan' email=anand@email.com password=1234
 http POST 127.0.0.0:8080/auth/authenticate password=1234 email=anand@email.com
 
-http GET 127.0.0.0:8080/api/users/me -a anand@email.com:1234
+http GET 127.0.0.0:8080/api/user -a anand@email.com:1234
+
+
+http DELETE 127.0.0.0:8080/api/user -a anand@email.com:1234
