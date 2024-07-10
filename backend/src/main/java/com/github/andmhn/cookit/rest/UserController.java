@@ -3,7 +3,6 @@ package com.github.andmhn.cookit.rest;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,13 +29,14 @@ public class UserController {
     @DeleteMapping
     public UserDto deleteUser(@AuthenticationPrincipal CustomUserDetails currentUser) {
     	User user = userService.validateAndGetUserByEmail(currentUser.getUsername());
+
+        // TODO: delete all recipes before deleting user
     	userService.deleteUser(user);
 
     	return mapToUserDto(user);
     }
     
     private UserDto mapToUserDto(User user) {
-    	return new UserDto(user.getId(), user.getFullname(), user.getEmail(),
-        		user.getRecipies().size());
+    	return new UserDto(user.getId(), user.getFullname(), user.getEmail());
     }
 }
