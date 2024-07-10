@@ -38,4 +38,12 @@ public class UserService {
         return getUserByEmail(email)
                 .filter(user -> passwordEncoder.matches(password, user.getPassword()));
     }
+
+	public User validateAndGetUserByEmail(String email) {
+        return getUserByEmail(email)
+                .orElseThrow(() -> new RuntimeException(String.format(
+                		"User with email %s not found", email)));
+
+	}
+	
 }
