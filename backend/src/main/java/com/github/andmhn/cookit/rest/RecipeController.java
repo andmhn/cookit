@@ -3,6 +3,8 @@ package com.github.andmhn.cookit.rest;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,13 +12,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.andmhn.cookit.model.Recipe;
 import com.github.andmhn.cookit.model.User;
-import com.github.andmhn.cookit.repository.RecipeRepository;
 import com.github.andmhn.cookit.rest.dto.RecipeDto;
 import com.github.andmhn.cookit.security.CustomUserDetails;
+import com.github.andmhn.cookit.service.RecipeService;
 import com.github.andmhn.cookit.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -26,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/recipe")
 public class RecipeController {
 	private final UserService userService;
-	private final RecipeRepository recipeRepository;
+	private final RecipeService recipeService;
 
 	// create / update recipe
 	@PostMapping
@@ -38,28 +41,46 @@ public class RecipeController {
 
 		Recipe recipe = mapFromRecipeDto(recipeDto);
 		recipe.setUser(user);
-		return mapToRecipeDto(recipeRepository.save(recipe));
+		return mapToRecipeDto(recipeService.save(recipe));
 	}
 
 	// Get a recipe by id
+	@ResponseStatus(HttpStatus.FOUND)
 	@GetMapping("/{recipeId}")
-	public RecipeDto getRecipe(
+	public ResponseEntity<RecipeDto> getRecipe(
 			@AuthenticationPrincipal CustomUserDetails currentUser,
 			@PathVariable Long recipeId) {
-		// TODO: check if exist
-		Recipe recipe = recipeRepository.findById(recipeId).get();
-		return mapToRecipeDto(recipe);
-	}	
+		User user = userService.getUserByEmail(currentUser.getEmail()).get();; 
+		
+		// check if it exist and user owns it
+		if(recipeService.checkUserHasRecipe(user, recipeId))
+		{
+			Recipe recipe = recipeService.findById(recipeId).get();
+			return ResponseEntity.ok(mapToRecipeDto(recipe));
+		} else {
+    		return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    	}
+	}
 
-	// delete a recipe
+	// delete a recipe by id
+	@ResponseStatus(HttpStatus.OK)
 	@DeleteMapping("/{recipeId}")
-	public RecipeDto deleteRecipe(
+	public ResponseEntity<RecipeDto> deleteRecipe(
 			@AuthenticationPrincipal CustomUserDetails currentUser,
 			@PathVariable Long recipeId) {
-		// TODO: check if exist
-		Recipe recipe = recipeRepository.findById(recipeId).get();
-		recipeRepository.deleteById(recipeId);
-		return mapToRecipeDto(recipe);
+		
+		User user = userService.getUserByEmail(currentUser.getEmail()).get();; 
+		
+		// check if it exist and user owns it
+		if(recipeService.checkUserHasRecipe(user, recipeId))
+		{
+			Recipe recipe = recipeService.findById(recipeId).get();
+			recipeService.deleteById(recipeId);
+			return ResponseEntity.ok(mapToRecipeDto(recipe));
+		}
+		else {
+    		return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    	}
 	}
 
 	// get all recipe
@@ -68,7 +89,7 @@ public class RecipeController {
     		@AuthenticationPrincipal CustomUserDetails currentUser) {
         User user = userService.validateAndGetUserByEmail(currentUser.getUsername());
 
-        List<Recipe> recipeList =  recipeRepository.findByUser(user);
+        List<Recipe> recipeList =  recipeService.findByUser(user);
 
         return recipeList.stream()
         		.map(recipe -> mapToRecipeDto(recipe))
@@ -80,7 +101,7 @@ public class RecipeController {
     public int totalRecipes(
     		@AuthenticationPrincipal CustomUserDetails currentUser) {
         User user = userService.validateAndGetUserByEmail(currentUser.getUsername());
-        return recipeRepository.findByUser(user).size();
+        return recipeService.findByUser(user).size();
     }
 
     private RecipeDto mapToRecipeDto(Recipe recipe) {
