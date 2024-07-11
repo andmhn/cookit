@@ -9,6 +9,4 @@ import com.github.andmhn.cookit.model.User;
 
 public interface RecipeRepository extends JpaRepository<Recipe, Long> {
 	List<Recipe> findByUser(User user);
-
-	void deleteAllByUser(User user);
 }

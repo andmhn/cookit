@@ -41,7 +41,9 @@ public class RecipeService {
 	}
 
 	public void deleteAllByUser(User user) {
-		recipeRepository.deleteAllByUser(user);
+		for (Recipe recipe : findByUser(user)) {
+            delete(recipe);
+		}
 	}
 
 	public boolean checkUserHasRecipe(User user, Long recipeId) {

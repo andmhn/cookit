@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final RecipeService recipeService;
 	
     public boolean hasUserWithEmail(String email) {
     	return userRepository.existsByEmail(email);
@@ -27,6 +28,8 @@ public class UserService {
     }
 
     public void deleteUser(User user) {
+    	// delete all user's related data
+    	recipeService.deleteAllByUser(user);
         userRepository.delete(user);
     }
 
